@@ -6,10 +6,9 @@ import {
   Minus, Plus, AlertCircle, Zap,
 } from 'lucide-react';
 import {
-  CATALOG, SUPPLIERS, getProductsBySupplier, searchProducts,
+  CATALOG, getProductsBySupplier, searchProducts,
   CatalogProduct, CartItem,
 } from '@/lib/catalog';
-import { SUPPLIERS as SUP_DATA } from '@/lib/data';
 import clsx from 'clsx';
 
 interface Props { onClose: () => void; }

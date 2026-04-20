@@ -74,7 +74,7 @@ export default function StandingOrdersModal({ onClose }: Props) {
           </button>
           {activeOrders.length > 0 && !ordered && (
             <p className="text-gray-500 text-xs text-center mt-2">
-              Will send requests to {[...new Set(activeOrders.map((o) => o.supplierName))].join(', ')}
+              Will send requests to {Array.from(new Set(activeOrders.map((o) => o.supplierName))).join(', ')}
             </p>
           )}
         </div>
