@@ -14,6 +14,9 @@ import DeliveriesView from '@/components/DeliveriesView';
 import NotificationsView from '@/components/NotificationsView';
 import SettingsView from '@/components/SettingsView';
 import HamburgerMenu from '@/components/HamburgerMenu';
+import FABMenu from '@/components/FABMenu';
+import PlaceOrderModal from '@/components/PlaceOrderModal';
+import StandingOrdersModal from '@/components/StandingOrdersModal';
 
 // Desktop panels
 import MetricCards from '@/components/desktop/MetricCards';
@@ -24,7 +27,7 @@ import AlertsPanel from '@/components/desktop/AlertsPanel';
 import clsx from 'clsx';
 
 type Tab = 'home' | 'deliveries' | 'notifs' | 'settings';
-type Modal = 'none' | 'order' | 'add' | 'fakedoor';
+type Modal = 'none' | 'order' | 'add' | 'fakedoor' | 'placeorder' | 'standing';
 
 export default function App() {
   const [deliveries, setDeliveries] = useState<Delivery[]>(SAMPLE_DELIVERIES);
@@ -197,26 +200,27 @@ export default function App() {
         </nav>
       </div>
 
-      {/* ── FAB (mobile only) ── */}
+      {/* ── Mobile FAB speed dial ── */}
       {showFAB && (
-        <button
-          onClick={() => setModal('add')}
-          className="lg:hidden fixed bottom-24 right-5 bg-yellow-400 hover:bg-yellow-300 text-gray-900 rounded-full w-14 h-14 flex items-center justify-center shadow-xl shadow-yellow-400/30 transition-all active:scale-90 z-40"
-          aria-label="Add delivery"
-        >
-          <Plus size={24} strokeWidth={3} />
-        </button>
+        <div className="lg:hidden">
+          <FABMenu
+            onTrackDelivery={() => setModal('add')}
+            onPlaceOrder={() => setModal('placeorder')}
+            onStandingOrders={() => setModal('standing')}
+          />
+        </div>
       )}
 
-      {/* ── Desktop FAB ── */}
+      {/* ── Desktop FAB speed dial ── */}
       {showFAB && (
-        <button
-          onClick={() => setModal('add')}
-          className="hidden lg:flex fixed bottom-8 right-8 bg-yellow-400 hover:bg-yellow-300 text-gray-900 rounded-2xl px-5 py-3 items-center gap-2 font-semibold text-sm shadow-xl shadow-yellow-400/20 transition-all active:scale-95 z-40"
-        >
-          <Plus size={18} strokeWidth={3} />
-          Add Delivery
-        </button>
+        <div className="hidden lg:block fixed bottom-8 right-8 z-40">
+          <FABMenu
+            isDesktop
+            onTrackDelivery={() => setModal('add')}
+            onPlaceOrder={() => setModal('placeorder')}
+            onStandingOrders={() => setModal('standing')}
+          />
+        </div>
       )}
 
       {/* ── Modals ── */}
@@ -229,6 +233,8 @@ export default function App() {
       )}
       {modal === 'add' && <AddDeliveryModal onClose={closeModal} onAdd={addDelivery} />}
       {modal === 'fakedoor' && <FakeDoorModal onClose={closeModal} />}
+      {modal === 'placeorder' && <PlaceOrderModal onClose={closeModal} />}
+      {modal === 'standing' && <StandingOrdersModal onClose={closeModal} />}
 
       {/* Mobile hamburger drawer */}
       {menuOpen && (
