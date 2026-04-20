@@ -1,6 +1,7 @@
 'use client';
 
-import { Menu, Bell, Search, Zap } from 'lucide-react';
+import { Menu, Bell } from 'lucide-react';
+import Image from 'next/image';
 import clsx from 'clsx';
 
 type Tab = 'home' | 'deliveries' | 'notifs' | 'settings';
@@ -23,9 +24,7 @@ export default function AppHeader({ activeTab, delayedCount, onMenuOpen, onNotif
   return (
     <header className="flex items-center justify-between px-5 pt-10 pb-4 flex-shrink-0 lg:hidden">
       <div className="flex items-center gap-2.5">
-        <div className="bg-blue-600 rounded-lg p-1.5">
-          <Zap size={18} className="text-white" />
-        </div>
+        <Image src="/icons/icon-64.png" alt="SupplyPilot" width={30} height={30} className="rounded-lg flex-shrink-0" />
         <span className="text-white font-bold text-lg tracking-tight">
           {TAB_TITLES[activeTab]}
         </span>

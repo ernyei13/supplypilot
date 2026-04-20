@@ -1,6 +1,7 @@
 'use client';
 
-import { Home, Truck, Bell, Settings, Zap, Sparkles } from 'lucide-react';
+import { Home, Truck, Bell, Settings, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import clsx from 'clsx';
 
 type Tab = 'home' | 'deliveries' | 'notifs' | 'settings';
@@ -24,9 +25,7 @@ export default function Sidebar({ activeTab, onNavigate, onFakeDoor, delayedCoun
     <aside className="hidden lg:flex flex-col w-60 bg-surface-card border-r border-gray-700/50 flex-shrink-0 h-screen sticky top-0">
       {/* Logo */}
       <div className="flex items-center gap-3 px-5 py-6 border-b border-gray-700/50">
-        <div className="bg-blue-600 rounded-xl p-2">
-          <Zap size={20} className="text-white" />
-        </div>
+        <Image src="/icons/icon-64.png" alt="SupplyPilot" width={36} height={36} className="rounded-xl flex-shrink-0" />
         <div>
           <p className="text-white font-bold text-base leading-tight">SupplyPilot</p>
           <p className="text-gray-500 text-xs">Restaurant Manager</p>

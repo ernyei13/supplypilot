@@ -1,6 +1,7 @@
 'use client';
 
-import { X, Home, Truck, Bell, Settings, Zap, Sparkles, ExternalLink } from 'lucide-react';
+import { X, Home, Truck, Bell, Settings, Sparkles } from 'lucide-react';
+import Image from 'next/image';
 import clsx from 'clsx';
 
 type Tab = 'home' | 'deliveries' | 'notifs' | 'settings';
@@ -39,9 +40,7 @@ export default function HamburgerMenu({ activeTab, onNavigate, onClose, onFakeDo
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-14 pb-5 border-b border-gray-700/50">
           <div className="flex items-center gap-2.5">
-            <div className="bg-blue-600 rounded-lg p-1.5">
-              <Zap size={18} className="text-white" />
-            </div>
+            <Image src="/icons/icon-64.png" alt="SupplyPilot" width={30} height={30} className="rounded-lg flex-shrink-0" />
             <div>
               <p className="text-white font-bold text-base leading-tight">SupplyPilot</p>
               <p className="text-gray-500 text-xs">Restaurant Manager</p>

@@ -12,7 +12,17 @@ export const metadata: Metadata = {
     title: 'SupplyPilot',
   },
   icons: {
-    apple: '/icons/icon-192.png',
+    icon: [
+      { url: '/icons/icon-16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/icons/icon-48.png', sizes: '48x48', type: 'image/png' },
+      { url: '/icons/icon-64.png', sizes: '64x64', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/icons/icon-180.png', sizes: '180x180', type: 'image/png' },
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+    ],
+    shortcut: '/icons/icon-32.png',
   },
 };
 
