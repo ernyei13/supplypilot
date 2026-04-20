@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Home, Truck, Bell, Settings, ChevronRight, Package } from 'lucide-react';
+import { Plus, Home, Truck, Bell, Settings, Package } from 'lucide-react';
 import { Delivery, SAMPLE_DELIVERIES, isDelayed, formatTime } from '@/lib/data';
 
 import AppHeader from '@/components/AppHeader';
@@ -103,7 +103,6 @@ export default function App() {
                     <AlertsPanel
                       deliveries={deliveries}
                       onOpenOrder={openOrder}
-                      onFakeDoor={() => setModal('fakedoor')}
                     />
                   </div>
                 </div>
@@ -116,7 +115,6 @@ export default function App() {
                 onTime={onTime}
                 onOpenOrder={openOrder}
                 onAddDelivery={() => setModal('add')}
-                onFakeDoor={() => setModal('fakedoor')}
               />
             </>
           )}
@@ -146,7 +144,6 @@ export default function App() {
                 <AlertsPanel
                   deliveries={deliveries}
                   onOpenOrder={openOrder}
-                  onFakeDoor={() => setModal('fakedoor')}
                 />
               </div>
               <div className="lg:hidden flex flex-col flex-1">
@@ -258,14 +255,12 @@ function MobileHome({
   onTime,
   onOpenOrder,
   onAddDelivery,
-  onFakeDoor,
 }: {
   deliveries: Delivery[];
   delayed: Delivery[];
   onTime: Delivery[];
   onOpenOrder: (d: Delivery) => void;
   onAddDelivery: () => void;
-  onFakeDoor: () => void;
 }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -284,20 +279,6 @@ function MobileHome({
         <SummaryCard label="On Time" value={onTime.length} color="text-green-400" />
         <SummaryCard label="Delayed" value={delayed.length} color="text-red-400" />
       </section>
-
-      {delayed.length > 0 && (
-        <button
-          onClick={onFakeDoor}
-          className="w-full mb-6 flex items-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform shadow-lg shadow-blue-900/40"
-        >
-          <span className="text-2xl">⚡</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm leading-tight">Resolve Delays Automatically</p>
-            <p className="text-blue-200 text-xs mt-0.5">Upgrade to AI Copilot · $29/mo</p>
-          </div>
-          <ChevronRight size={18} className="text-blue-200 flex-shrink-0" />
-        </button>
-      )}
 
       <section>
         <h2 className="text-white font-bold text-base mb-3">Today&apos;s deliveries</h2>

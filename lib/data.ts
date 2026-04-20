@@ -82,57 +82,76 @@ export const SUPPLIERS: Supplier[] = [
   },
 ];
 
-export const SAMPLE_DELIVERIES: Delivery[] = [
-  {
-    id: '1',
-    supplierName: 'Metro Food Service',
-    items: 'Vegetables',
-    expectedTime: '10:30',
-    phone: '+391234567890',
-    whatsapp: '391234567890',
-  },
-  {
-    id: '2',
-    supplierName: 'Local Greens Co.',
-    items: 'Salads',
-    expectedTime: '09:00',
-    phone: '+391234567891',
-    whatsapp: '391234567891',
-    note: 'Call if late',
-  },
-  {
-    id: '3',
-    supplierName: 'Balla Fresh Co.',
-    items: 'Vegetables',
-    expectedTime: '10:30',
-    phone: '+391234567892',
-    whatsapp: '391234567892',
-  },
-  {
-    id: '4',
-    supplierName: 'Metro Food Service',
-    items: 'Salads',
-    expectedTime: '10:30',
-    phone: '+391234567890',
-    whatsapp: '391234567890',
-  },
-  {
-    id: '5',
-    supplierName: 'Velier Spirits',
-    items: 'Rum, Speciality Liquors',
-    expectedTime: '11:45',
-    phone: '+391234567893',
-    whatsapp: '391234567893',
-  },
-  {
-    id: '6',
-    supplierName: 'Sopplaya Produce',
-    items: 'Fruits & Dairy',
-    expectedTime: '08:30',
-    phone: '+391234567894',
-    whatsapp: '391234567894',
-  },
-];
+/** Build a HH:MM string offset from now by `minutesDelta` */
+function relativeTime(minutesDelta: number): string {
+  const d = new Date(Date.now() + minutesDelta * 60_000);
+  const h = d.getHours().toString().padStart(2, '0');
+  const m = d.getMinutes().toString().padStart(2, '0');
+  return `${h}:${m}`;
+}
+
+export function buildSampleDeliveries(): Delivery[] {
+  return [
+    // Delivered (well in the past) ✓
+    {
+      id: '1',
+      supplierName: 'Selecta',
+      items: 'Dairy & Cold Cuts',
+      expectedTime: relativeTime(-120),
+      phone: '+391234567895',
+      whatsapp: '391234567895',
+      note: 'Leave at back entrance',
+    },
+    // Delayed (25 min overdue) ✗
+    {
+      id: '2',
+      supplierName: 'Local Greens Co.',
+      items: 'Salads & Rocket',
+      expectedTime: relativeTime(-25),
+      phone: '+391234567891',
+      whatsapp: '391234567891',
+      note: 'Call if late',
+    },
+    // Arriving very soon (10 min) ↑
+    {
+      id: '3',
+      supplierName: 'Metro Food Service',
+      items: 'Vegetables',
+      expectedTime: relativeTime(10),
+      phone: '+391234567890',
+      whatsapp: '391234567890',
+    },
+    // Delayed (45 min overdue) ✗
+    {
+      id: '4',
+      supplierName: 'Sopplaya Produce',
+      items: 'Fruits & Dairy',
+      expectedTime: relativeTime(-45),
+      phone: '+391234567894',
+      whatsapp: '391234567894',
+    },
+    // On time — arriving in 40 min ✓
+    {
+      id: '5',
+      supplierName: 'Balla Fresh Co.',
+      items: 'Seasonal Vegetables',
+      expectedTime: relativeTime(40),
+      phone: '+391234567892',
+      whatsapp: '391234567892',
+    },
+    // On time — arriving in 90 min ✓
+    {
+      id: '6',
+      supplierName: 'Velier Spirits',
+      items: 'Rum, Speciality Liquors',
+      expectedTime: relativeTime(90),
+      phone: '+391234567893',
+      whatsapp: '391234567893',
+    },
+  ];
+}
+
+export const SAMPLE_DELIVERIES: Delivery[] = buildSampleDeliveries();
 
 export function isDelayed(expectedTime: string): boolean {
   const now = new Date();

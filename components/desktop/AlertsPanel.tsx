@@ -1,16 +1,15 @@
 'use client';
 
-import { AlertTriangle, Clock, CheckCircle, Zap, ChevronRight } from 'lucide-react';
+import { AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import { Delivery, isDelayed, formatTime } from '@/lib/data';
 import clsx from 'clsx';
 
 interface Props {
   deliveries: Delivery[];
   onOpenOrder: (d: Delivery) => void;
-  onFakeDoor: () => void;
 }
 
-export default function AlertsPanel({ deliveries, onOpenOrder, onFakeDoor }: Props) {
+export default function AlertsPanel({ deliveries, onOpenOrder }: Props) {
   const now = new Date();
 
   const delayed = deliveries.filter((d) => isDelayed(d.expectedTime));
@@ -24,21 +23,6 @@ export default function AlertsPanel({ deliveries, onOpenOrder, onFakeDoor }: Pro
 
   return (
     <div className="flex flex-col gap-4">
-      {/* AI Banner */}
-      {delayed.length > 0 && (
-        <button
-          onClick={onFakeDoor}
-          className="w-full flex items-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-4 text-left active:scale-[0.98] transition-transform shadow-lg shadow-blue-900/30"
-        >
-          <span className="text-xl flex-shrink-0">⚡</span>
-          <div className="flex-1 min-w-0">
-            <p className="text-white font-bold text-sm leading-tight">Resolve Delays Automatically</p>
-            <p className="text-blue-200 text-xs mt-0.5">AI Copilot · $29/mo</p>
-          </div>
-          <ChevronRight size={16} className="text-blue-300 flex-shrink-0" />
-        </button>
-      )}
-
       {/* Active alerts */}
       <div className="bg-surface-card rounded-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-gray-700/50">
