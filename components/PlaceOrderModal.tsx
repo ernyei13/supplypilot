@@ -3,18 +3,18 @@
 import { useState, useMemo } from 'react';
 import {
   X, Search, ShoppingCart, ChevronRight, CheckCircle,
-  Minus, Plus, AlertCircle, Zap,
+  Minus, Plus, AlertCircle, Zap, Star,
 } from 'lucide-react';
 import {
-  CATALOG, getProductsBySupplier, searchProducts,
-  CatalogProduct, CartItem,
+  getProductsBySupplier, getFrequentProducts, getOtherProducts,
+  searchProducts, CatalogProduct, CartItem,
 } from '@/lib/catalog';
 import clsx from 'clsx';
 
 interface Props { onClose: () => void; }
 
 type Mode = 'by-supplier' | 'by-product';
-type Step = 'browse' | 'cart' | 'success';
+type Step = 'browse' | 'success';
 
 const SUPPLIER_COLORS: Record<string, string> = {
   metro: 'bg-blue-600', greens: 'bg-green-600', balla: 'bg-emerald-600',
@@ -26,19 +26,52 @@ const SUPPLIER_NAMES: Record<string, string> = {
   velier: 'Velier Spirits', sopplaya: 'Sopplaya Produce', selecta: 'Selecta',
 };
 
+const SUPPLIER_CATEGORIES: Record<string, string> = {
+  metro: 'Vegetables · Meat · Fish',
+  greens: 'Salads · Herbs · Microgreens',
+  balla: 'Vegetables · Fruit · Poultry',
+  velier: 'Spirits · Aperitifs · Liquors',
+  sopplaya: 'Dairy · Fruit · Juices',
+  selecta: 'Cheese · Cold Cuts · Dairy',
+};
+
 export default function PlaceOrderModal({ onClose }: Props) {
   const [mode, setMode] = useState<Mode>('by-supplier');
   const [selectedSupplierId, setSelectedSupplierId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [supplierSearch, setSupplierSearch] = useState('');
+  const [productSearch, setProductSearch] = useState('');
+  const [globalSearch, setGlobalSearch] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [step, setStep] = useState<Step>('browse');
 
-  const supplierProducts = useMemo(
-    () => (selectedSupplierId ? getProductsBySupplier(selectedSupplierId) : []),
-    [selectedSupplierId]
+  // Filtered supplier list
+  const filteredSuppliers = useMemo(() =>
+    Object.entries(SUPPLIER_NAMES).filter(([, name]) =>
+      name.toLowerCase().includes(supplierSearch.toLowerCase()) ||
+      SUPPLIER_CATEGORIES[Object.entries(SUPPLIER_NAMES).find(([, n]) => n === name)?.[0] ?? '']
+        ?.toLowerCase().includes(supplierSearch.toLowerCase())
+    ),
+    [supplierSearch]
   );
 
-  const searchResults = useMemo(() => searchProducts(searchQuery), [searchQuery]);
+  // Products for selected supplier, filtered by in-page search
+  const frequentProducts = useMemo(() =>
+    selectedSupplierId ? getFrequentProducts(selectedSupplierId).filter(p =>
+      !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+      p.category.toLowerCase().includes(productSearch.toLowerCase())
+    ) : [],
+    [selectedSupplierId, productSearch]
+  );
+
+  const otherProducts = useMemo(() =>
+    selectedSupplierId ? getOtherProducts(selectedSupplierId).filter(p =>
+      !productSearch || p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+      p.category.toLowerCase().includes(productSearch.toLowerCase())
+    ) : [],
+    [selectedSupplierId, productSearch]
+  );
+
+  const globalSearchResults = useMemo(() => searchProducts(globalSearch), [globalSearch]);
 
   const cartTotal = cart.reduce((s, i) => s + i.product.pricePerUnit * i.quantity, 0);
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
@@ -60,6 +93,15 @@ export default function PlaceOrderModal({ onClose }: Props) {
     return cart.find((i) => i.product.id === productId)?.quantity ?? 0;
   }
 
+  function switchMode(m: Mode) {
+    setMode(m);
+    setSelectedSupplierId(null);
+    setSupplierSearch('');
+    setProductSearch('');
+    setGlobalSearch('');
+  }
+
+  // ── Success screen ──────────────────────────────────────────────────────────
   if (step === 'success') {
     return (
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -73,12 +115,9 @@ export default function PlaceOrderModal({ onClose }: Props) {
             </span>.
           </p>
           <p className="text-gray-500 text-xs mb-6">
-            They will confirm within their standard response window. You'll see the delivery in your dashboard once confirmed.
+            They will confirm within their standard response window.
           </p>
-          <button
-            onClick={onClose}
-            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-colors"
-          >
+          <button onClick={onClose} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3.5 rounded-xl transition-colors">
             Back to Dashboard
           </button>
         </div>
@@ -86,6 +125,7 @@ export default function PlaceOrderModal({ onClose }: Props) {
     );
   }
 
+  // ── Main modal ──────────────────────────────────────────────────────────────
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="w-full max-w-lg bg-surface-card rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
@@ -103,13 +143,13 @@ export default function PlaceOrderModal({ onClose }: Props) {
         <div className="px-5 pt-4 pb-3 flex-shrink-0">
           <div className="flex bg-surface rounded-xl p-1 gap-1">
             <button
-              onClick={() => { setMode('by-supplier'); setSelectedSupplierId(null); setSearchQuery(''); }}
+              onClick={() => switchMode('by-supplier')}
               className={clsx('flex-1 py-2 rounded-lg text-sm font-semibold transition-colors', mode === 'by-supplier' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white')}
             >
               By Supplier
             </button>
             <button
-              onClick={() => { setMode('by-product'); setSelectedSupplierId(null); }}
+              onClick={() => switchMode('by-product')}
               className={clsx('flex-1 py-2 rounded-lg text-sm font-semibold transition-colors', mode === 'by-product' ? 'bg-blue-600 text-white' : 'text-gray-400 hover:text-white')}
             >
               By Product
@@ -120,44 +160,112 @@ export default function PlaceOrderModal({ onClose }: Props) {
         {/* Content */}
         <div className="flex-1 min-h-0 overflow-y-auto px-5 pb-4">
 
-          {/* ── BY SUPPLIER ── */}
+          {/* ── BY SUPPLIER: supplier list ── */}
           {mode === 'by-supplier' && !selectedSupplierId && (
             <div>
-              <p className="text-gray-400 text-xs mb-3">Select a supplier to browse their catalog</p>
-              <div className="space-y-2">
-                {Object.entries(SUPPLIER_NAMES).map(([id, name]) => (
-                  <button
-                    key={id}
-                    onClick={() => setSelectedSupplierId(id)}
-                    className="w-full flex items-center gap-3 bg-surface rounded-xl px-4 py-3 text-left hover:bg-gray-700/50 transition-colors group"
-                  >
-                    <div className={clsx('w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0', SUPPLIER_COLORS[id])}>
-                      {name.charAt(0)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold text-sm">{name}</p>
-                      <p className="text-gray-500 text-xs">{getProductsBySupplier(id).length} products available</p>
-                    </div>
-                    <ChevronRight size={16} className="text-gray-600 group-hover:text-gray-400 transition-colors" />
-                  </button>
-                ))}
+              {/* Supplier search bar */}
+              <div className="relative mb-3">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  value={supplierSearch}
+                  onChange={(e) => setSupplierSearch(e.target.value)}
+                  placeholder="Search suppliers…"
+                  className="w-full bg-surface text-white placeholder-gray-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
               </div>
+
+              {filteredSuppliers.length === 0 ? (
+                <p className="text-gray-500 text-sm text-center py-8">No suppliers match &ldquo;{supplierSearch}&rdquo;</p>
+              ) : (
+                <div className="space-y-2">
+                  {filteredSuppliers.map(([id, name]) => (
+                    <button
+                      key={id}
+                      onClick={() => { setSelectedSupplierId(id); setProductSearch(''); }}
+                      className="w-full flex items-center gap-3 bg-surface rounded-xl px-4 py-3 text-left hover:bg-gray-700/50 transition-colors group"
+                    >
+                      <div className={clsx('w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold text-sm flex-shrink-0', SUPPLIER_COLORS[id])}>
+                        {name.charAt(0)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-white font-semibold text-sm">{name}</p>
+                        <p className="text-gray-500 text-xs truncate">{SUPPLIER_CATEGORIES[id]}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-0.5 flex-shrink-0">
+                        <span className="text-gray-500 text-xs">{getProductsBySupplier(id).length} products</span>
+                        <ChevronRight size={14} className="text-gray-600 group-hover:text-gray-400 transition-colors" />
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
+          {/* ── BY SUPPLIER: product catalog ── */}
           {mode === 'by-supplier' && selectedSupplierId && (
             <div>
-              <button
-                onClick={() => setSelectedSupplierId(null)}
-                className="flex items-center gap-1.5 text-blue-400 text-sm mb-4 hover:text-blue-300"
-              >
-                ← Back to suppliers
-              </button>
-              <div className="space-y-2">
-                {supplierProducts.map((p) => (
-                  <ProductRow key={p.id} product={p} qty={getQty(p.id)} onSetQty={(d) => setQty(p, d)} />
-                ))}
+              {/* Back + supplier name */}
+              <div className="flex items-center gap-3 mb-4">
+                <button
+                  onClick={() => setSelectedSupplierId(null)}
+                  className="text-blue-400 hover:text-blue-300 text-sm font-medium flex-shrink-0"
+                >
+                  ← Back
+                </button>
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className={clsx('w-6 h-6 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0', SUPPLIER_COLORS[selectedSupplierId])}>
+                    {SUPPLIER_NAMES[selectedSupplierId].charAt(0)}
+                  </div>
+                  <p className="text-white font-semibold text-sm truncate">{SUPPLIER_NAMES[selectedSupplierId]}</p>
+                </div>
               </div>
+
+              {/* Product search bar */}
+              <div className="relative mb-4">
+                <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="text"
+                  value={productSearch}
+                  onChange={(e) => setProductSearch(e.target.value)}
+                  placeholder="Search products…"
+                  className="w-full bg-surface text-white placeholder-gray-500 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Usually Ordered section */}
+              {frequentProducts.length > 0 && (
+                <div className="mb-5">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <Star size={12} className="text-yellow-400 fill-yellow-400" />
+                    <p className="text-yellow-400 text-xs font-bold uppercase tracking-wide">Usually Ordered</p>
+                  </div>
+                  <div className="space-y-2">
+                    {frequentProducts.map((p) => (
+                      <ProductRow key={p.id} product={p} qty={getQty(p.id)} onSetQty={(d) => setQty(p, d)} highlight />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* All other products */}
+              {otherProducts.length > 0 && (
+                <div>
+                  {frequentProducts.length > 0 && (
+                    <p className="text-gray-500 text-xs font-semibold uppercase tracking-wide mb-2">All Products</p>
+                  )}
+                  <div className="space-y-2">
+                    {otherProducts.map((p) => (
+                      <ProductRow key={p.id} product={p} qty={getQty(p.id)} onSetQty={(d) => setQty(p, d)} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {frequentProducts.length === 0 && otherProducts.length === 0 && (
+                <p className="text-gray-500 text-sm text-center py-8">No products match &ldquo;{productSearch}&rdquo;</p>
+              )}
             </div>
           )}
 
@@ -169,68 +277,63 @@ export default function PlaceOrderModal({ onClose }: Props) {
                 <input
                   autoFocus
                   type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={globalSearch}
+                  onChange={(e) => setGlobalSearch(e.target.value)}
                   placeholder="Search: chicken, mozzarella, lemon…"
                   className="w-full bg-surface text-white placeholder-gray-500 rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
 
-              {!searchQuery && (
+              {!globalSearch && (
                 <p className="text-gray-500 text-sm text-center py-8">
                   Type a product name to compare prices across all suppliers.
                 </p>
               )}
-
-              {searchQuery && searchResults.length === 0 && (
-                <p className="text-gray-500 text-sm text-center py-8">No products found for &ldquo;{searchQuery}&rdquo;</p>
+              {globalSearch && globalSearchResults.length === 0 && (
+                <p className="text-gray-500 text-sm text-center py-8">No products found for &ldquo;{globalSearch}&rdquo;</p>
               )}
 
-              {searchResults.length > 0 && (
+              {globalSearchResults.length > 0 && (
                 <>
-                  {/* Group by product name for comparison */}
-                  {groupByName(searchResults).map(({ name, products }) => (
+                  {groupByName(globalSearchResults).map(({ name, products }) => (
                     <div key={name} className="mb-4">
                       <p className="text-gray-400 text-xs font-semibold uppercase tracking-wide mb-2">{name}</p>
                       <div className="space-y-1.5">
-                        {products
-                          .sort((a, b) => a.pricePerUnit - b.pricePerUnit)
-                          .map((p, i) => (
-                            <div key={p.id} className={clsx('relative flex items-center gap-3 bg-surface rounded-xl px-4 py-3', !p.inStock && 'opacity-60')}>
-                              {/* Cheapest badge */}
-                              {i === 0 && products.length > 1 && p.inStock && (
-                                <span className="absolute -top-2 -left-1 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
-                                  <Zap size={9} /> BEST PRICE
-                                </span>
-                              )}
-                              <div className={clsx('w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0', SUPPLIER_COLORS[p.supplierId])}>
-                                {SUPPLIER_NAMES[p.supplierId].charAt(0)}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white text-sm font-semibold truncate">{SUPPLIER_NAMES[p.supplierId]}</p>
-                                <p className="text-gray-500 text-xs">
-                                  {p.deliveryLeadDays === 0 ? 'Same day' : `${p.deliveryLeadDays}d delivery`} · min {p.minOrderQty} {p.unit}
-                                </p>
-                              </div>
-                              <div className="text-right flex-shrink-0">
-                                <p className="text-white font-bold text-sm">€{p.pricePerUnit.toFixed(2)}</p>
-                                <p className="text-gray-500 text-xs">/{p.unit}</p>
-                              </div>
-                              {!p.inStock ? (
-                                <span className="text-red-400 text-xs font-semibold flex-shrink-0">Out of stock</span>
-                              ) : (
-                                <div className="flex items-center gap-1.5 flex-shrink-0">
-                                  {getQty(p.id) > 0 && (
-                                    <>
-                                      <button onClick={() => setQty(p, -1)} className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center text-white hover:bg-gray-500"><Minus size={12} /></button>
-                                      <span className="text-white text-sm font-bold w-5 text-center">{getQty(p.id)}</span>
-                                    </>
-                                  )}
-                                  <button onClick={() => setQty(p, 1)} className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500"><Plus size={12} /></button>
-                                </div>
-                              )}
+                        {products.sort((a, b) => a.pricePerUnit - b.pricePerUnit).map((p, i) => (
+                          <div key={p.id} className={clsx('relative flex items-center gap-3 bg-surface rounded-xl px-4 py-3', !p.inStock && 'opacity-60')}>
+                            {i === 0 && products.length > 1 && p.inStock && (
+                              <span className="absolute -top-2 -left-1 bg-green-500 text-white text-[9px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+                                <Zap size={9} /> BEST PRICE
+                              </span>
+                            )}
+                            <div className={clsx('w-7 h-7 rounded-lg flex items-center justify-center text-white font-bold text-xs flex-shrink-0', SUPPLIER_COLORS[p.supplierId])}>
+                              {SUPPLIER_NAMES[p.supplierId].charAt(0)}
                             </div>
-                          ))}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm font-semibold truncate">{SUPPLIER_NAMES[p.supplierId]}</p>
+                              <p className="text-gray-500 text-xs">
+                                {p.deliveryLeadDays === 0 ? 'Same day' : `${p.deliveryLeadDays}d delivery`} · min {p.minOrderQty} {p.unit}
+                              </p>
+                            </div>
+                            <div className="text-right flex-shrink-0">
+                              <p className="text-white font-bold text-sm">€{p.pricePerUnit.toFixed(2)}</p>
+                              <p className="text-gray-500 text-xs">/{p.unit}</p>
+                            </div>
+                            {!p.inStock ? (
+                              <span className="text-red-400 text-xs font-semibold flex-shrink-0">Out</span>
+                            ) : (
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                {getQty(p.id) > 0 && (
+                                  <>
+                                    <button onClick={() => setQty(p, -1)} className="w-7 h-7 rounded-full bg-gray-600 flex items-center justify-center text-white hover:bg-gray-500"><Minus size={12} /></button>
+                                    <span className="text-white text-sm font-bold w-5 text-center">{getQty(p.id)}</span>
+                                  </>
+                                )}
+                                <button onClick={() => setQty(p, 1)} className="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-500"><Plus size={12} /></button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   ))}
@@ -260,17 +363,31 @@ export default function PlaceOrderModal({ onClose }: Props) {
   );
 }
 
-function ProductRow({ product, qty, onSetQty }: { product: CatalogProduct; qty: number; onSetQty: (d: number) => void }) {
+// ── Product row ──────────────────────────────────────────────────────────────
+
+function ProductRow({
+  product, qty, onSetQty, highlight,
+}: {
+  product: CatalogProduct; qty: number; onSetQty: (d: number) => void; highlight?: boolean;
+}) {
   return (
-    <div className={clsx('flex items-center gap-3 bg-surface rounded-xl px-4 py-3', !product.inStock && 'opacity-60')}>
+    <div className={clsx(
+      'flex items-center gap-3 rounded-xl px-4 py-3 border transition-all',
+      highlight
+        ? 'bg-yellow-500/5 border-yellow-500/20'
+        : 'bg-surface border-transparent',
+      !product.inStock && 'opacity-60'
+    )}>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-white font-semibold text-sm truncate">{product.name}</p>
           {!product.inStock && <AlertCircle size={13} className="text-red-400 flex-shrink-0" />}
         </div>
-        <p className="text-gray-500 text-xs mt-0.5">{product.category} · {product.unit} · min {product.minOrderQty}</p>
+        <p className="text-gray-500 text-xs mt-0.5">
+          {product.category} · {product.unit} · min {product.minOrderQty}
+        </p>
       </div>
-      <div className="text-right flex-shrink-0 mr-2">
+      <div className="text-right flex-shrink-0 mr-1">
         <p className="text-white font-bold text-sm">€{product.pricePerUnit.toFixed(2)}</p>
         <p className="text-gray-500 text-[10px]">/{product.unit}</p>
       </div>
@@ -291,12 +408,13 @@ function ProductRow({ product, qty, onSetQty }: { product: CatalogProduct; qty: 
   );
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 function groupByName(products: CatalogProduct[]): { name: string; products: CatalogProduct[] }[] {
   const map = new Map<string, CatalogProduct[]>();
   for (const p of products) {
-    const key = p.name;
-    if (!map.has(key)) map.set(key, []);
-    map.get(key)!.push(p);
+    if (!map.has(p.name)) map.set(p.name, []);
+    map.get(p.name)!.push(p);
   }
   return Array.from(map.entries()).map(([name, products]) => ({ name, products }));
 }

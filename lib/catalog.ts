@@ -120,8 +120,28 @@ export const STANDING_ORDERS: StandingOrder[] = [
   },
 ];
 
+/** Product IDs that are "usually ordered" per supplier — shown at the top of the catalog */
+export const FREQUENT_ITEMS: Record<string, string[]> = {
+  metro:    ['metro-4', 'metro-5', 'metro-3', 'metro-1'],   // Tomatoes, Peppers, Lettuce, Chicken Thigh
+  greens:   ['greens-1', 'greens-2', 'greens-5'],           // Mixed Leaves, Rocket, Baby Spinach
+  balla:    ['balla-2', 'balla-3', 'balla-4', 'balla-1'],   // Veg Box, Potatoes, Onions, Chicken
+  velier:   ['velier-5', 'velier-4', 'velier-1'],           // Aperol, Campari, Havana Club
+  sopplaya: ['sopplaya-1', 'sopplaya-2', 'sopplaya-3'],     // Milk, Cream, OJ
+  selecta:  ['selecta-1', 'selecta-2', 'selecta-3'],        // Parmigiano, Mozzarella, Prosciutto
+};
+
 export function getProductsBySupplier(supplierId: string): CatalogProduct[] {
   return CATALOG.filter((p) => p.supplierId === supplierId);
+}
+
+export function getFrequentProducts(supplierId: string): CatalogProduct[] {
+  const ids = FREQUENT_ITEMS[supplierId] ?? [];
+  return ids.map((id) => CATALOG.find((p) => p.id === id)).filter(Boolean) as CatalogProduct[];
+}
+
+export function getOtherProducts(supplierId: string): CatalogProduct[] {
+  const frequentIds = new Set(FREQUENT_ITEMS[supplierId] ?? []);
+  return CATALOG.filter((p) => p.supplierId === supplierId && !frequentIds.has(p.id));
 }
 
 export function searchProducts(query: string): CatalogProduct[] {
