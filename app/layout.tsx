@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import { SettingsProvider } from '@/lib/SettingsContext';
 
 export const metadata: Metadata = {
   title: 'SupplyPilot',
@@ -25,13 +26,15 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       </head>
-      <body className="min-h-screen bg-surface antialiased">{children}</body>
+      <body className="min-h-screen bg-surface antialiased">
+        <SettingsProvider>{children}</SettingsProvider>
+      </body>
     </html>
   );
 }

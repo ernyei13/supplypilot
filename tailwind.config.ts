@@ -14,10 +14,10 @@ const config: Config = {
           yellow: '#EAB308',
         },
         surface: {
-          DEFAULT: '#111827',
-          card: '#1F2937',
-          modal: '#1F2937',
-          input: '#374151',
+          DEFAULT: 'var(--color-surface)',
+          card: 'var(--color-surface-card)',
+          modal: 'var(--color-surface-card)',
+          input: 'var(--color-surface-input)',
         },
       },
       fontFamily: {

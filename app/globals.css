@@ -4,34 +4,56 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-* {
-  -webkit-tap-highlight-color: transparent;
+/* ── Theme variables ──────────────────────────────── */
+:root {
+  --color-surface: #111827;
+  --color-surface-card: #1F2937;
+  --color-surface-input: #374151;
 }
 
-html {
-  background-color: #111827;
+[data-theme="light"] {
+  --color-surface: #F3F4F6;
+  --color-surface-card: #FFFFFF;
+  --color-surface-input: #F3F4F6;
 }
+
+/* ── Light mode text overrides ─────────────────────── */
+[data-theme="light"] body { color: #111827; }
+[data-theme="light"] .text-white { color: #111827 !important; }
+[data-theme="light"] .text-gray-300 { color: #374151 !important; }
+[data-theme="light"] .text-gray-400 { color: #4B5563 !important; }
+[data-theme="light"] .text-gray-500 { color: #6B7280 !important; }
+[data-theme="light"] .text-gray-600 { color: #9CA3AF !important; }
+
+/* borders */
+[data-theme="light"] .border-gray-700\/50,
+[data-theme="light"] .border-gray-700\/40,
+[data-theme="light"] .border-gray-700\/30,
+[data-theme="light"] .border-gray-700\/20 { border-color: #E5E7EB !important; }
+[data-theme="light"] .divide-gray-700\/40 > * + *,
+[data-theme="light"] .divide-gray-700\/30 > * + * { border-color: #E5E7EB !important; }
+
+/* misc bg */
+[data-theme="light"] .bg-gray-700 { background-color: #D1D5DB !important; }
+[data-theme="light"] .bg-gray-800 { background-color: #F9FAFB !important; }
+[data-theme="light"] .hover\:bg-white\/5:hover { background-color: rgba(0,0,0,0.03) !important; }
+[data-theme="light"] .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(0,0,0,0.02) !important; }
+[data-theme="light"] .placeholder-gray-500::placeholder { color: #9CA3AF !important; }
+
+/* ── Global ───────────────────────────────────────── */
+* { -webkit-tap-highlight-color: transparent; }
+
+html { background-color: var(--color-surface); }
 
 body {
-  background-color: #111827;
+  background-color: var(--color-surface);
   color: #F9FAFB;
   font-family: 'Inter', system-ui, sans-serif;
   overscroll-behavior: none;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: #111827;
-}
-::-webkit-scrollbar-thumb {
-  background: #374151;
-  border-radius: 2px;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--color-surface); }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
 
-/* Smooth modal backdrop */
-.backdrop-blur-sm {
-  backdrop-filter: blur(4px);
-}
+.backdrop-blur-sm { backdrop-filter: blur(4px); }

@@ -25,11 +25,13 @@ import OrdersTable from '@/components/desktop/OrdersTable';
 import AlertsPanel from '@/components/desktop/AlertsPanel';
 
 import clsx from 'clsx';
+import { useSettings } from '@/lib/SettingsContext';
 
 type Tab = 'home' | 'deliveries' | 'notifs' | 'settings';
 type Modal = 'none' | 'order' | 'add' | 'fakedoor' | 'placeorder' | 'standing';
 
 export default function App() {
+  const { settings } = useSettings();
   const [deliveries, setDeliveries] = useState<Delivery[]>(SAMPLE_DELIVERIES);
   const [selectedDelivery, setSelectedDelivery] = useState<Delivery | null>(null);
   const [modal, setModal] = useState<Modal>('none');
@@ -43,6 +45,8 @@ export default function App() {
   }, []);
 
   const delayed = deliveries.filter((d) => isDelayed(d.expectedTime));
+  // Respect notification settings for badge counts
+  const badgeCount = settings.delayAlerts ? delayed.length : 0;
   const onTime = deliveries.filter((d) => !isDelayed(d.expectedTime));
 
   function openOrder(delivery: Delivery) {
@@ -61,7 +65,7 @@ export default function App() {
         activeTab={activeTab}
         onNavigate={setActiveTab}
         onFakeDoor={() => setModal('fakedoor')}
-        delayedCount={delayed.length}
+        delayedCount={badgeCount}
       />
 
       {/* ── Main column ── */}
@@ -69,7 +73,7 @@ export default function App() {
         {/* Mobile header */}
         <AppHeader
           activeTab={activeTab}
-          delayedCount={delayed.length}
+          delayedCount={badgeCount}
           onMenuOpen={() => setMenuOpen(true)}
           onNotifs={() => setActiveTab('notifs')}
         />
@@ -77,7 +81,7 @@ export default function App() {
         {/* Desktop header */}
         <DesktopHeader
           activeTab={activeTab}
-          delayedCount={delayed.length}
+          delayedCount={badgeCount}
           onNotifs={() => setActiveTab('notifs')}
         />
 
@@ -185,9 +189,9 @@ export default function App() {
             >
               <span className="relative">
                 <Icon size={22} />
-                {id === 'notifs' && delayed.length > 0 && (
+                {id === 'notifs' && badgeCount > 0 && (
                   <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-red-500 rounded-full text-[8px] text-white font-bold flex items-center justify-center">
-                    {delayed.length}
+                    {badgeCount}
                   </span>
                 )}
               </span>
@@ -240,7 +244,7 @@ export default function App() {
           onNavigate={setActiveTab}
           onClose={() => setMenuOpen(false)}
           onFakeDoor={() => setModal('fakedoor')}
-          delayedCount={delayed.length}
+          delayedCount={badgeCount}
         />
       )}
     </div>
