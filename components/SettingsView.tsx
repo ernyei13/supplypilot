@@ -37,24 +37,46 @@ function SettingRow({
   icon: React.ReactNode; label: string; sublabel?: string;
   right?: React.ReactNode; onClick?: () => void; danger?: boolean;
 }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={!onClick}
-      className={clsx(
-        'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
-        onClick && !danger && 'hover:bg-white/5 active:bg-white/10',
-        onClick && danger && 'hover:bg-red-500/10',
-        !onClick && 'cursor-default'
-      )}
-    >
+  const inner = (
+    <>
       <span className={clsx('flex-shrink-0', danger ? 'text-red-400' : 'text-gray-400')}>{icon}</span>
       <div className="flex-1 min-w-0">
         <p className={clsx('text-sm font-medium', danger ? 'text-red-400' : 'text-white')}>{label}</p>
         {sublabel && <p className="text-gray-500 text-xs mt-0.5">{sublabel}</p>}
       </div>
       {right ?? (onClick && !danger ? <ChevronRight size={16} className="text-gray-600 flex-shrink-0" /> : null)}
-    </button>
+    </>
+  );
+
+  // If there's a toggle/custom right element, use a div so the inner button isn't nested
+  if (right) {
+    return (
+      <div className="w-full flex items-center gap-3.5 px-4 py-3.5">
+        {inner}
+      </div>
+    );
+  }
+
+  // Tappable rows use a button
+  if (onClick) {
+    return (
+      <button
+        onClick={onClick}
+        className={clsx(
+          'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
+          danger ? 'hover:bg-red-500/10 active:bg-red-500/15' : 'hover:bg-white/5 active:bg-white/10'
+        )}
+      >
+        {inner}
+      </button>
+    );
+  }
+
+  // Static info rows
+  return (
+    <div className="w-full flex items-center gap-3.5 px-4 py-3.5 cursor-default">
+      {inner}
+    </div>
   );
 }
 
