@@ -23,6 +23,19 @@ function buildNotifications(deliveries: Delivery[]): Notif[] {
   const notifs: Notif[] = [];
 
   for (const d of deliveries) {
+    // Show received items as delivered notifications
+    if (d.status === 'received') {
+      notifs.push({
+        id: `recv-${d.id}`,
+        type: 'delivered',
+        title: `${d.supplierName} received`,
+        body: `${d.items} · marked received`,
+        time: formatTime(d.expectedTime),
+        delivery: d,
+      });
+      continue;
+    }
+
     const late = isDelayed(d.expectedTime);
     const [h, m] = d.expectedTime.split(':').map(Number);
     const expected = new Date();
@@ -39,7 +52,7 @@ function buildNotifications(deliveries: Delivery[]): Notif[] {
         time: formatTime(d.expectedTime),
         delivery: d,
       });
-    } else if (diffMin > 0 && diffMin <= 30) {
+    } else if (diffMin > 0 && diffMin <= 45) {
       notifs.push({
         id: `soon-${d.id}`,
         type: 'upcoming',
@@ -51,25 +64,7 @@ function buildNotifications(deliveries: Delivery[]): Notif[] {
     }
   }
 
-  // Simulated past-delivered items for realism
-  const delivered: Notif[] = [
-    {
-      id: 'del-1',
-      type: 'delivered',
-      title: 'Selecta delivered successfully',
-      body: 'Dairy & Eggs · confirmed at 07:45 AM',
-      time: '7:45 AM',
-    },
-    {
-      id: 'del-2',
-      type: 'delivered',
-      title: 'Bread & Pastry Co. delivered',
-      body: 'Baked goods · confirmed at 06:30 AM',
-      time: '6:30 AM',
-    },
-  ];
-
-  return [...notifs, ...delivered];
+  return notifs;
 }
 
 const iconMap = {

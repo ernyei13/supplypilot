@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import {
   Bell, Moon, Sun, Globe, ChevronRight, LogOut,
-  Shield, Smartphone, Info, Check,
+  Shield, Smartphone, Info, Check, X, AlertTriangle,
 } from 'lucide-react';
 import clsx from 'clsx';
 import { useSettings } from '@/lib/SettingsContext';
@@ -71,7 +71,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function Toast({ message }: { message: string }) {
   return (
-    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-xl z-50 flex items-center gap-2 whitespace-nowrap">
+    <div className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-sm font-medium px-4 py-2.5 rounded-xl shadow-xl z-50 flex items-center gap-2 whitespace-nowrap border border-gray-700/50">
       <Check size={14} className="text-green-400 flex-shrink-0" />
       {message}
     </div>
@@ -91,10 +91,11 @@ function LanguagePicker({
   current: 'en' | 'it'; onSelect: (l: 'en' | 'it') => void; onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/50 backdrop-blur-sm p-4" onClick={onClose}>
       <div className="w-full max-w-sm bg-surface-card rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
-        <div className="px-5 py-4 border-b border-gray-700/50">
+        <div className="px-5 py-4 border-b border-gray-700/50 flex items-center justify-between">
           <p className="text-white font-bold text-base">Select Language</p>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1"><X size={18} /></button>
         </div>
         {LANGUAGES.map((l) => (
           <button
@@ -112,12 +113,92 @@ function LanguagePicker({
   );
 }
 
+// ── Privacy Policy modal ─────────────────────────────────────────────────────
+
+function PrivacyModal({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+      <div className="w-full max-w-md bg-surface-card rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[80vh]" onClick={(e) => e.stopPropagation()}>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700/50 flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Shield size={18} className="text-blue-400" />
+            <p className="text-white font-bold text-base">Privacy Policy</p>
+          </div>
+          <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors p-1"><X size={18} /></button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4 text-gray-400 text-sm leading-relaxed">
+          <div>
+            <p className="text-white font-semibold mb-1">Data We Collect</p>
+            <p>SupplyPilot stores your delivery schedules, supplier contacts, and app preferences locally on your device. No personal data is transmitted to external servers without your consent.</p>
+          </div>
+          <div>
+            <p className="text-white font-semibold mb-1">How We Use Data</p>
+            <p>Your data is used exclusively to power the SupplyPilot experience — tracking deliveries, managing suppliers, and sending notifications you&apos;ve opted into.</p>
+          </div>
+          <div>
+            <p className="text-white font-semibold mb-1">Third-Party Services</p>
+            <p>WhatsApp and phone call links open your device&apos;s native apps. SupplyPilot does not store or log the content of those communications.</p>
+          </div>
+          <div>
+            <p className="text-white font-semibold mb-1">Data Retention</p>
+            <p>All settings and preferences are stored in your browser&apos;s localStorage and can be cleared at any time by clearing your browser data.</p>
+          </div>
+          <div>
+            <p className="text-white font-semibold mb-1">Contact</p>
+            <p>For privacy questions, contact us at privacy@supplypilot.app</p>
+          </div>
+          <p className="text-gray-600 text-xs">Last updated: April 2026 · v1.0.0-beta</p>
+        </div>
+        <div className="px-5 pb-5 flex-shrink-0">
+          <button onClick={onClose} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-colors text-sm">
+            Got it
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Sign Out confirmation ─────────────────────────────────────────────────────
+
+function SignOutDialog({ onClose }: { onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" onClick={onClose}>
+      <div className="w-full max-w-sm bg-surface-card rounded-2xl overflow-hidden shadow-2xl" onClick={(e) => e.stopPropagation()}>
+        <div className="p-6 text-center">
+          <div className="w-14 h-14 rounded-full bg-red-500/15 flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle size={24} className="text-red-400" />
+          </div>
+          <h3 className="text-white font-bold text-lg mb-1">Sign Out?</h3>
+          <p className="text-gray-400 text-sm">Your preferences and settings will remain saved on this device.</p>
+        </div>
+        <div className="px-5 pb-5 grid grid-cols-2 gap-3">
+          <button
+            onClick={onClose}
+            className="py-3 rounded-xl bg-surface text-gray-300 font-semibold text-sm hover:bg-white/10 transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onClose}
+            className="py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-sm transition-colors"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 export default function SettingsView() {
   const { settings, update } = useSettings();
   const [editingName, setEditingName] = useState(false);
   const [langPickerOpen, setLangPickerOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
+  const [signOutOpen, setSignOutOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
 
   function showToast(msg: string) {
@@ -133,6 +214,11 @@ export default function SettingsView() {
       darkMode: value ? 'Dark mode on' : 'Light mode on',
     };
     showToast(labels[key]);
+  }
+
+  function handleInstallPrompt() {
+    // Try native PWA install prompt if available
+    showToast('Open in mobile browser → Share → Add to Home Screen');
   }
 
   const langLabel = LANGUAGES.find((l) => l.code === settings.language)?.label ?? 'English';
@@ -168,7 +254,7 @@ export default function SettingsView() {
           </div>
           <button
             onClick={() => setEditingName(true)}
-            className="text-blue-400 text-xs font-medium hover:text-blue-300 transition-colors flex-shrink-0"
+            className="text-blue-400 text-xs font-semibold hover:text-blue-300 transition-colors flex-shrink-0 bg-blue-400/10 px-3 py-1.5 rounded-lg"
           >
             Edit
           </button>
@@ -209,18 +295,33 @@ export default function SettingsView() {
             icon={<Smartphone size={18} />}
             label="Install as App"
             sublabel="Add SupplyPilot to your home screen"
-            onClick={() => showToast('Open in mobile browser → Share → Add to Home Screen')}
+            onClick={handleInstallPrompt}
           />
-          <SettingRow icon={<Shield size={18} />} label="Privacy Policy" onClick={() => {}} />
-          <SettingRow icon={<Info size={18} />} label="Version" sublabel="1.0.0-beta" />
+          <SettingRow
+            icon={<Shield size={18} />}
+            label="Privacy Policy"
+            sublabel="How we handle your data"
+            onClick={() => setPrivacyOpen(true)}
+          />
+          <SettingRow
+            icon={<Info size={18} />}
+            label="Version"
+            sublabel="1.0.0-beta · Made with ♥ for restaurants"
+          />
         </Section>
 
         <Section title="Account">
-          <SettingRow icon={<LogOut size={18} />} label="Sign Out" onClick={() => showToast('Sign out coming soon')} danger />
+          <SettingRow
+            icon={<LogOut size={18} />}
+            label="Sign Out"
+            sublabel="You will need to log in again"
+            onClick={() => setSignOutOpen(true)}
+            danger
+          />
         </Section>
       </main>
 
-      {/* Language picker modal */}
+      {/* Modals */}
       {langPickerOpen && (
         <LanguagePicker
           current={settings.language}
@@ -228,6 +329,8 @@ export default function SettingsView() {
           onClose={() => setLangPickerOpen(false)}
         />
       )}
+      {privacyOpen && <PrivacyModal onClose={() => setPrivacyOpen(false)} />}
+      {signOutOpen && <SignOutDialog onClose={() => setSignOutOpen(false)} />}
 
       {/* Toast */}
       {toast && <Toast message={toast} />}

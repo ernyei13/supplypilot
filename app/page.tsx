@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Plus, Home, Truck, Bell, Settings, Package } from 'lucide-react';
+import { Plus, Home, Truck, Bell, Settings, Package, MessageCircle, Phone, CheckCircle2 } from 'lucide-react';
 import { Delivery, SAMPLE_DELIVERIES, isDelayed, formatTime } from '@/lib/data';
 
 import AppHeader from '@/components/AppHeader';
@@ -44,7 +44,7 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
-  const delayed = deliveries.filter((d) => isDelayed(d.expectedTime));
+  const delayed = deliveries.filter((d) => isDelayed(d.expectedTime) && d.status !== 'received');
   // Respect notification settings for badge counts
   const badgeCount = settings.delayAlerts ? delayed.length : 0;
   const onTime = deliveries.filter((d) => !isDelayed(d.expectedTime));
@@ -55,6 +55,9 @@ export default function App() {
   }
   function closeModal() { setModal('none'); setSelectedDelivery(null); }
   function addDelivery(d: Delivery) { setDeliveries((prev) => [d, ...prev]); }
+  function markReceived(id: string) {
+    setDeliveries((prev) => prev.map((d) => d.id === id ? { ...d, status: 'received' as const } : d));
+  }
 
   const showFAB = activeTab === 'home' || activeTab === 'deliveries';
 
@@ -98,7 +101,7 @@ export default function App() {
                 <div className="grid grid-cols-3 gap-5">
                   {/* Left: orders table (2/3) */}
                   <div className="col-span-2 flex flex-col gap-5">
-                    <OrdersTable deliveries={deliveries} onOpenOrder={openOrder} />
+                    <OrdersTable deliveries={deliveries} onOpenOrder={openOrder} onMarkReceived={markReceived} />
                     <SupplierPerformance />
                   </div>
 
@@ -119,6 +122,7 @@ export default function App() {
                 onTime={onTime}
                 onOpenOrder={openOrder}
                 onAddDelivery={() => setModal('add')}
+                onMarkReceived={markReceived}
               />
             </>
           )}
@@ -129,13 +133,14 @@ export default function App() {
               {/* Desktop deliveries = same table in full width */}
               <div className="hidden lg:block px-8 py-6">
                 <MetricCards deliveries={deliveries} />
-                <OrdersTable deliveries={deliveries} onOpenOrder={openOrder} />
+                <OrdersTable deliveries={deliveries} onOpenOrder={openOrder} onMarkReceived={markReceived} />
               </div>
               <div className="lg:hidden flex flex-col flex-1">
                 <DeliveriesView
                   deliveries={deliveries}
                   onOpenOrder={openOrder}
                   onAdd={() => setModal('add')}
+                  onMarkReceived={markReceived}
                 />
               </div>
             </>
@@ -230,6 +235,7 @@ export default function App() {
           delivery={selectedDelivery}
           delayed={isDelayed(selectedDelivery.expectedTime)}
           onClose={closeModal}
+          onMarkReceived={markReceived}
         />
       )}
       {modal === 'add' && <AddDeliveryModal onClose={closeModal} onAdd={addDelivery} />}
@@ -259,15 +265,18 @@ function MobileHome({
   onTime,
   onOpenOrder,
   onAddDelivery,
+  onMarkReceived,
 }: {
   deliveries: Delivery[];
   delayed: Delivery[];
   onTime: Delivery[];
   onOpenOrder: (d: Delivery) => void;
   onAddDelivery: () => void;
+  onMarkReceived: (id: string) => void;
 }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const received = deliveries.filter((d) => d.status === 'received');
 
   return (
     <main className="lg:hidden flex-1 overflow-y-auto px-5 pb-28">
@@ -278,10 +287,11 @@ function MobileHome({
         </h1>
       </section>
 
-      <section className="grid grid-cols-3 gap-3 mb-6">
-        <SummaryCard label="Total Orders" value={deliveries.length} color="text-white" />
+      <section className="grid grid-cols-4 gap-2.5 mb-6">
+        <SummaryCard label="Total" value={deliveries.length} color="text-white" />
         <SummaryCard label="On Time" value={onTime.length} color="text-green-400" />
         <SummaryCard label="Delayed" value={delayed.length} color="text-red-400" />
+        <SummaryCard label="Received" value={received.length} color="text-emerald-400" />
       </section>
 
       <section>
@@ -297,28 +307,52 @@ function MobileHome({
         ) : (
           <ul className="space-y-2.5">
             {deliveries.map((d) => {
-              const late = isDelayed(d.expectedTime);
+              const late = isDelayed(d.expectedTime) && d.status !== 'received';
+              const isReceived = d.status === 'received';
               return (
                 <li key={d.id}>
-                  <button
-                    onClick={() => onOpenOrder(d)}
+                  <div
                     className={clsx(
-                      'w-full flex items-center gap-3 bg-surface-card rounded-2xl px-4 py-3.5 text-left transition-all active:scale-[0.98]',
-                      late ? 'border border-red-500/30' : 'border border-transparent hover:border-gray-600'
+                      'w-full flex items-center gap-3 bg-surface-card rounded-2xl px-4 py-3.5 border transition-all',
+                      isReceived ? 'border-emerald-500/20 opacity-75' : late ? 'border-red-500/30' : 'border-transparent'
                     )}
                   >
-                    <span className={clsx('w-1 h-10 rounded-full flex-shrink-0', late ? 'bg-red-500' : 'bg-green-500')} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-white font-semibold text-sm truncate">{d.supplierName}</p>
-                      <p className="text-gray-400 text-xs mt-0.5 truncate">{d.items}</p>
+                    <button onClick={() => onOpenOrder(d)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                      <span className={clsx('w-1 h-10 rounded-full flex-shrink-0', isReceived ? 'bg-emerald-500' : late ? 'bg-red-500' : 'bg-green-500')} />
+                      <div className="flex-1 min-w-0">
+                        <p className={clsx('font-semibold text-sm truncate', isReceived ? 'text-gray-400 line-through' : 'text-white')}>{d.supplierName}</p>
+                        <p className="text-gray-500 text-xs mt-0.5 truncate">{d.items}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 flex-shrink-0 mr-1">
+                        <span className="text-gray-300 text-xs font-medium">{formatTime(d.expectedTime)}</span>
+                        <span className={clsx('text-[10px] font-bold uppercase tracking-wide',
+                          isReceived ? 'text-emerald-400' : late ? 'text-red-400' : 'text-green-400')}>
+                          {isReceived ? 'RECEIVED' : late ? 'DELAYED' : 'ON TIME'}
+                        </span>
+                      </div>
+                    </button>
+                    {/* Quick actions */}
+                    <div className="flex items-center gap-1 flex-shrink-0 border-l border-gray-700/50 pl-3 ml-1">
+                      {!isReceived && (
+                        <button
+                          onClick={() => onMarkReceived(d.id)}
+                          className="p-1.5 text-gray-500 hover:text-emerald-400 transition-colors rounded-lg hover:bg-emerald-400/10"
+                          title="Mark received"
+                        >
+                          <CheckCircle2 size={16} />
+                        </button>
+                      )}
+                      <a
+                        href={`https://wa.me/${d.whatsapp}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1.5 text-gray-500 hover:text-[#25D366] transition-colors rounded-lg hover:bg-[#25D366]/10"
+                        title="WhatsApp"
+                      >
+                        <MessageCircle size={16} />
+                      </a>
                     </div>
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <span className="text-gray-300 text-xs font-medium">{formatTime(d.expectedTime)}</span>
-                      <span className={clsx('text-[10px] font-bold uppercase tracking-wide', late ? 'text-red-400' : 'text-green-400')}>
-                        {late ? 'DELAYED' : 'ON TIME'}
-                      </span>
-                    </div>
-                  </button>
+                  </div>
                 </li>
               );
             })}

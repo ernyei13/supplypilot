@@ -6,6 +6,7 @@ export interface Delivery {
   phone: string;
   whatsapp: string;
   note?: string;
+  status: 'pending' | 'received';
 }
 
 export interface Supplier {
@@ -92,7 +93,7 @@ function relativeTime(minutesDelta: number): string {
 
 export function buildSampleDeliveries(): Delivery[] {
   return [
-    // Delivered (well in the past) ✓
+    // Received (well in the past) ✓
     {
       id: '1',
       supplierName: 'Selecta',
@@ -101,6 +102,7 @@ export function buildSampleDeliveries(): Delivery[] {
       phone: '+391234567895',
       whatsapp: '391234567895',
       note: 'Leave at back entrance',
+      status: 'received',
     },
     // Delayed (25 min overdue) ✗
     {
@@ -111,6 +113,7 @@ export function buildSampleDeliveries(): Delivery[] {
       phone: '+391234567891',
       whatsapp: '391234567891',
       note: 'Call if late',
+      status: 'pending',
     },
     // Arriving very soon (10 min) ↑
     {
@@ -120,6 +123,7 @@ export function buildSampleDeliveries(): Delivery[] {
       expectedTime: relativeTime(10),
       phone: '+391234567890',
       whatsapp: '391234567890',
+      status: 'pending',
     },
     // Delayed (45 min overdue) ✗
     {
@@ -129,6 +133,7 @@ export function buildSampleDeliveries(): Delivery[] {
       expectedTime: relativeTime(-45),
       phone: '+391234567894',
       whatsapp: '391234567894',
+      status: 'pending',
     },
     // On time — arriving in 40 min ✓
     {
@@ -138,6 +143,7 @@ export function buildSampleDeliveries(): Delivery[] {
       expectedTime: relativeTime(40),
       phone: '+391234567892',
       whatsapp: '391234567892',
+      status: 'pending',
     },
     // On time — arriving in 90 min ✓
     {
@@ -147,6 +153,7 @@ export function buildSampleDeliveries(): Delivery[] {
       expectedTime: relativeTime(90),
       phone: '+391234567893',
       whatsapp: '391234567893',
+      status: 'pending',
     },
   ];
 }

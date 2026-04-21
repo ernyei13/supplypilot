@@ -26,6 +26,7 @@ export default function AddDeliveryModal({ onClose, onAdd }: Props) {
       expectedTime,
       phone: phone || '+390000000000',
       whatsapp: (phone || '+390000000000').replace(/\D/g, ''),
+      status: 'pending',
     });
     onClose();
   }
